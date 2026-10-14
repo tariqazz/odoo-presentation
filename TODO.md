@@ -1,0 +1,21 @@
+- [ ] BPMN (Tiago, inputs from everyone)  
+  - [ ] Refine BPMN  
+  - [ ] Describe BPMN  
+- [ ] Class diagram (X)  
+  - [ ] Create class diagram  
+  - [ ] Describe class diagram  
+- [ ] Life cycle (X)  
+  - [ ] Petri net  
+  - [ ] Describe Petri net	  
+- [ ] Process documentation (X)  
+  - [ ] Refine documentation  
+- [ ] API Integration  
+  - [ ] Consider a mechanism to seed data to the Odoo Deployment (Tiago)  
+    - [ ] Define how to import article  
+    - [ ] Create code/file with articles to import  
+  - [ ] Consider a mechanism to reset the data on the Odoo Deployment (X)  
+    - [ ] Define how to reset  
+    - [ ] Code reseeding data  
+- [ ] Endpoint integrations (Victor)  
+  - [ ] Adapt current ones    
+  - [ ] Create X more endpoint
