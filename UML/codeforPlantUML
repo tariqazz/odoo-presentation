@@ -1,0 +1,125 @@
+@startuml
+hide circle
+hide empty methods
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+title UML Class Diagram - GANYMEDE
+
+' --- CLASSES ---
+
+class "res.partner\n(Customer / Contact)" as Partner {
+  <u>id : integer</u>
+  name : char
+  is_company : boolean
+  customer_rank : integer
+}
+
+class "sale.order\n(Quotation / Order)" as SaleOrder {
+  <u>name : char</u>
+  state : selection
+  date_order : datetime
+  validity_date : date
+  commitment_date : datetime
+  amount_total : monetary
+  invoice_status : selection
+  delivery_status : selection
+}
+
+class "sale.order.line\n(Order Line)" as SaleOrderLine {
+  product_uom_qty : float
+  qty_delivered : float
+  qty_invoiced : float
+  qty_to_invoice : float
+  price_unit : float
+  price_subtotal : monetary
+  invoice_status : selection
+}
+
+class "product.template\n(Product Template)" as ProductTemplate {
+  name : char
+  type : selection
+  is_storable : boolean
+  list_price : float
+  invoice_policy : selection
+}
+
+class "product.product\n(Product Variant)" as Product {
+  <u>default_code : char</u>
+  qty_available : float {computed}
+}
+
+class "stock.picking\n(Delivery Order / Picking)" as StockPicking {
+  <u>name : char</u>
+  origin : char
+  state : selection
+  scheduled_date : datetime
+  date_deadline : datetime
+  date_done : datetime
+}
+
+class "stock.move\n(Stock Move)" as StockMove {
+  product_uom_qty : float
+  quantity : float
+  state : selection
+}
+
+class "account.move\n(Invoice)" as AccountMove {
+  <u>name : char</u>
+  move_type : selection
+  state : selection
+  payment_state : selection
+  invoice_date : date
+  invoice_date_due : date
+  invoice_origin : char
+  amount_total : monetary
+  amount_residual : monetary
+}
+
+class "account.move.line\n(Invoice Line)" as AccountMoveLine {
+  quantity : float
+  price_unit : float
+  price_subtotal : monetary
+}
+
+class "account.payment\n(Customer Payment)" as AccountPayment {
+  <u>name : char</u>
+  date : date
+  amount : monetary
+  state : selection
+}
+
+' --- RELATIONS & CARDINALITIES ---
+
+' Partner relations (res.partner)
+Partner "0..1" <-- "*" Partner : parent_id\n(belongs to company)
+Partner "1..1" <-- "*" SaleOrder : partner_id\n(places order)
+Partner "0..1" <-- "*" StockPicking : partner_id\n(is delivered to)
+Partner "0..1" <-- "*" AccountMove : partner_id\n(is invoiced to)
+Partner "1..1" <-- "*" AccountPayment : partner_id\n(makes payment)
+
+' Header / Lines compositions (solid diamond)
+SaleOrder "1..1" *-- "*" SaleOrderLine : order_line
+StockPicking "0..1" *-- "*" StockMove : move_ids
+AccountMove "1..1" *-- "*" AccountMoveLine : invoice_line_ids
+
+' Product relations
+ProductTemplate "1..1" <-- "*" Product : product_tmpl_id
+Product "0..1" <-- "*" SaleOrderLine : product_id
+Product "1..1" <-- "*" StockMove : product_id
+Product "0..1" <-- "*" AccountMoveLine : product_id
+
+' Traceability Sales -> Stock (Delivery & Backorders)
+SaleOrder "0..1" <-- "*" StockPicking : sale_id
+SaleOrderLine "0..1" <-- "*" StockMove : sale_line_id
+StockPicking "0..1" <-- "*" StockPicking : backorder_id\n(backorder)
+
+' Traceability Sales -> Accounting (Invoicing)
+SaleOrderLine "*" <--> "*" AccountMoveLine : invoice_lines /\nsale_line_ids
+SaleOrder "*" ..> "*" AccountMove : invoice_ids\n{computed via lines}
+
+' Payment & Invoice Reconciliation (and tracking payment reminders via invoice_date_due)
+AccountMove "*" <--> "*" AccountPayment : matched_payments\n(reconciliation)
+
+@enduml
